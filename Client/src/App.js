@@ -7,6 +7,10 @@ import About from './components/About/About';
 import Detail from './components/Detail/Detail';
 import Form from './components/Form/Form';
 import Favorites from './components/Favorites/Favorites';
+import axios from 'axios';
+
+// import dotenv from 'dotenv';
+// dotenv.config();
 
 function App () {
   //aqui va mi cerebroooooo
@@ -18,35 +22,39 @@ function App () {
  }, [access]);
 
   //emulacion de base de datos
-  const username = 'batman@wayneinc.com';
-  const password = 'iambatman123';
+  // const username = 'batman@wayneinc.com';
+  // const password = 'iambatman123';
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  function login(userData) {
-    if (userData.password === password && userData.username === username) {
-       setAccess(true);
-       navigate('/home');
-    }else{
-      alert('A donde????')
-    }
+  async function login(userData) {
+    const { username, password } = userData;
+
+    const URL = 'http://localhost:3001/rickandmorty/login/';
+    const res = await axios(URL + `?email=${username}&password=${password}`)
+    const { access } = res.data;
+    setAccess(access);
+    access && navigate('/home');
  }
 
-  const hndleOnClose = (id) => setCharacters((prevState)=> prevState.filter((ch)=>ch.id !== +id));
+  const hndleOnClose = (id) => {
+    setCharacters((prevState)=> prevState.filter((ch)=>ch.id !== id))
+  };
   
 
-  const handleSearch = (characterID) =>{
-    //API
-    fetch(`https://rickandmortyapi.com/api/character/${characterID}`)
-      .then((response) => response.json())
-      .then((data) => {
-         if (data.name) {
-            setCharacters((prevState) => [...prevState, data]);
-         } else {
-            window.alert(`Hay un problema: ${data.error}`);
-         }
-    });
+  const handleSearch = async (characterID) =>{
+    try {
+      const { data }  = await axios(`http://localhost:3001/rickandmorty/character/${characterID}`)
+      if (data.name) {
+        setCharacters((prevState) => [...prevState, data]);
+      } else {
+          window.alert(`Hay un problema: ${data.error}`);
+      }
+    } catch (err) {
+      console.log('hay un error');
+    }
+    
   }
 
   let myStyle = { padding: '25px' };
